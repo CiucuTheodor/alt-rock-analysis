@@ -5,6 +5,9 @@ import numpy as np
 import os
 import matplotlib.pyplot
 import geopandas as gpd
+from sklearn.cluster import KMeans
+import statsmodels.api as sm
+
 
 st.set_page_config(page_title="Classic Alt Rock Analysis", layout="wide")
 
@@ -252,7 +255,6 @@ st.write("Using `sklearn.cluster.KMeans` to group our Classic Alt-Rock tracks in
 
 if st.button("Generate KMeans Clustering Diagrams"):
     with st.spinner("Running KMeans algorithm..."):
-        from sklearn.cluster import KMeans
 
         # 1. Prepare the Data array 'X' just like the example
         # We will extract 2 numerical features from our filtered dataset to cluster!
@@ -305,7 +307,6 @@ st.write("Using the mathematical `statsmodels.api` package to analyze how signif
 
 if st.button("Run Multiple Regression Analysis"):
     with st.spinner("Running OLS mathematical regression..."):
-        import statsmodels.api as sm
         
         # 1. Clean data just for this calculation
         regression_df = filtered_df[['Popularity', 'Danceability', 'Energy']].dropna()
@@ -344,3 +345,31 @@ if st.button("Run Multiple Regression Analysis"):
         ax_reg.grid(linestyle='--', alpha=0.5)
         
         st.pyplot(fig_reg)
+
+st.divider()
+
+#X 10. Data Preprocessing: Encoding Methods
+st.subheader("10. Data Preprocessing: Encoding Methods")
+st.write("Using Pandas `pd.get_dummies()` to uniquely perform **One-Hot Encoding** on the categorical `Country` column, mathematically translating descriptive geographic strings into Machine Learning binary integers (`0` and `1`):")
+
+if st.button("Run One-Hot Encoding"):
+    with st.spinner("Encoding categorical string data into strict numeric arrays..."):
+        
+        # Display the target column before encoding so the professor sees the transformation clearly
+        st.write("**1. Before Encoding (Raw String Categories):**")
+        st.dataframe(merged_df[['Artist', 'Track', 'Country']].head(10))
+        
+        # Apply pd.get_dummies() specifically mapping the categorical 'Country' text into binary variables
+        encoded_df = pd.get_dummies(merged_df, columns=['Country'], prefix='Origin', dtype=int)
+        
+        # Display the mathematically translated result dynamically
+        st.write("**2. After Encoding (Machine Learning Boolean Format):**")
+        st.write("Notice how the single `Country` text column has been mathematically split into three independent boolean arrays so equations can physically read it!")
+        
+        # Dynamically discover whatever dummy variables were generated
+        origin_cols = [col for col in encoded_df.columns if col.startswith('Origin_')]
+        
+        # Show exactly how the dataset was transformed natively in Streamlit
+        st.dataframe(encoded_df[['Artist', 'Track'] + origin_cols].head(10))
+        
+        st.success("Successfully encoded categorical string data into mathematical binary values! This dataset is now officially 100% standardized for Neural Network processing.")
