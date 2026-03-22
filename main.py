@@ -299,38 +299,48 @@ if st.button("Generate KMeans Clustering Diagrams"):
 
 st.divider()
 
-#X 9. Data Cleaning (Extreme Outliers)
-st.subheader("9. Data Cleaning (Handling Extreme Values)")
-st.write("Using the mathematical Interquartile Range (IQR) limits to actively detect and cleanly cap extreme statistical anomalies (outliers) hiding inside the dataset:")
+#X 9. Statsmodels (Multiple Regression)
+st.subheader("9. Statistical Modeling: Multiple Regression (`statsmodels`)")
+st.write("Using the mathematical `statsmodels.api` package to analyze how significantly `Danceability` and `Energy` statistically predict a track's ultimate `Popularity` on Spotify:")
 
-if st.button("Detect & Clean Extreme Values"):
-    with st.spinner("Calculating Interquartile Bounds..."):
+if st.button("Run Multiple Regression Analysis"):
+    with st.spinner("Running OLS mathematical regression..."):
+        import statsmodels.api as sm
         
-        # Calculate IQR strictly for the 'Popularity' column
-        Q1 = filtered_df['Popularity'].quantile(0.25)
-        Q3 = filtered_df['Popularity'].quantile(0.75)
-        IQR_value = Q3 - Q1
+        # 1. Clean data just for this calculation
+        regression_df = filtered_df[['Popularity', 'Danceability', 'Energy']].dropna()
         
-        lower_bound = Q1 - 1.5 * IQR_value
-        upper_bound = Q3 + 1.5 * IQR_value
+        # 2. Define the Dependent Variable (Y) - The final outcome we want to predict
+        Y = regression_df['Popularity']
         
-        # 1. Identify raw outliers mathematically exceeding the 1.5 mathematical limits
-        outliers = filtered_df[(filtered_df['Popularity'] < lower_bound) | (filtered_df['Popularity'] > upper_bound)]
+        # 3. Define the Independent Variables (X) - The data features driving the outcome
+        X = regression_df[['Danceability', 'Energy']]
         
-        st.write(f"**Step 1. Detection:** My algorithm definitively identified **{len(outliers)} extreme outliers** in the song `Popularity` metric that fell significantly outside normal bounds!")
-        st.dataframe(outliers)
+        # 4. Add a mathematical constant (intercept) naturally required for the linear model
+        X = sm.add_constant(X)
         
-        st.write("**Step 2. Data Capping (Winsorization):** We mathematically compress those extreme outliers tightly back into the mathematical limits to clean the predictive model!")
+        # 5. Initialize and natively fit the Ordinary Least Squares (OLS) regression model
+        model = sm.OLS(Y, X).fit()
         
-        # 2. Clean the dataset strictly by capping the upper/lower extreme values
-        cleaned_df = filtered_df.copy()
+        # 6. Print the beautiful terminal-style math summary directly onto the web dashboard!
+        st.write("**Comprehensive Statsmodels Regression Summary:**")
+        st.text(model.summary().as_text())
         
-        cleaned_df.loc[cleaned_df['Popularity'] > upper_bound, 'Popularity'] = upper_bound
-        cleaned_df.loc[cleaned_df['Popularity'] < lower_bound, 'Popularity'] = lower_bound
+        # 7. Add a quick interpretive graphic showing Actual vs Predicted
+        st.write("**Actual vs Predicted Popularity Scatter:**")
+        predictions = model.predict(X)
         
-        # Verify cleaning completely eliminated the outliers
-        new_outliers = cleaned_df[(cleaned_df['Popularity'] < lower_bound) | (cleaned_df['Popularity'] > upper_bound)]
+        fig_reg, ax_reg = matplotlib.pyplot.subplots(figsize=(10, 6))
+        ax_reg.scatter(Y, predictions, color='magenta', alpha=0.6, edgecolor='black')
         
-        # Output the Success metrics
-        st.success(f"**Success!** The dataset has been rigorously cleansed. There are now {len(new_outliers)} extreme values remaining.")
-        st.dataframe(cleaned_df.describe())
+        # Add a "perfect prediction" 45-degree slope line
+        min_val = min(Y.min(), predictions.min())
+        max_val = max(Y.max(), predictions.max())
+        ax_reg.plot([min_val, max_val], [min_val, max_val], color='red', linestyle='--', linewidth=2)
+        
+        ax_reg.set_xlabel("Actual Algorithm Popularity", fontweight='bold')
+        ax_reg.set_ylabel("Predicted Popularity (from audio features)", fontweight='bold')
+        ax_reg.set_title("OLS Multiple Regression Accuracy", fontsize=15, fontweight='bold')
+        ax_reg.grid(linestyle='--', alpha=0.5)
+        
+        st.pyplot(fig_reg)
