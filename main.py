@@ -31,16 +31,14 @@ st.write(f"This dataset has {df.shape[0]} rows and {df.shape[1]} columns.")
 
 st.subheader("2. Extracted Artists")
 
-# Let the user choose how to sort
-sort_option = st.radio("Sort Artists By:", ["Alphabetical (A-Z)", "Average Popularity (High to Low)"], horizontal=True)
+sort_option = st.radio("Sort Artists By:", ["Alphabetical (A-Z)", "Average Popularity (High to Low)"]
+, horizontal=True)
 
 if sort_option == "Average Popularity (High to Low)":
-    # Calculate each artist's average popularity and sort them descending
     artist_pop = df.groupby('Artist')['Popularity'].mean().sort_values(ascending=False)
     artists_list = artist_pop.index.tolist()
     artists_list = [str(artist) for artist in artists_list]
 else:
-    # Default alphabetical sorting
     artists_list = df['Artist'].unique().tolist()
     artists_list = [str(artist) for artist in artists_list]
     artists_list.sort(key=str.lower)
@@ -76,6 +74,26 @@ filtered_df = df[df['Artist'].isin(selected_bands)].reset_index(drop=True)
 
 st.dataframe(filtered_df)
 st.write(f"The beautifully filtered dataset now has exactly {filtered_df.shape[0]} rows.")
+
+st.write("---")
+st.write(f"**The {len(selected_bands)} Officially Filtered Artists:**")
+
+# Let the user choose how to sort this secondary list as well using a unique key
+sort_option_filtered = st.radio("Sort Filtered Artists By:", ["Alphabetical (A-Z)", "Average Popularity (High to Low)"], horizontal=True, key="sort_filtered")
+
+if sort_option_filtered == "Average Popularity (High to Low)":
+    # Calculate average popularity from the freshly filtered_df
+    artist_pop_f = filtered_df.groupby('Artist')['Popularity'].mean().sort_values(ascending=False)
+    display_bands = artist_pop_f.index.tolist()
+else:
+    # Default alphabetical
+    display_bands = sorted(selected_bands, key=str.lower)
+
+num_cols_f = 5
+cols_f = st.columns(num_cols_f)
+
+for i, artist in enumerate(display_bands):
+    cols_f[i % num_cols_f].write(f"- {artist}")
 
 st.divider()
 
