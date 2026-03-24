@@ -5,7 +5,6 @@ import numpy as np
 import os
 import matplotlib.pyplot
 import geopandas as gpd
-from sklearn.cluster import KMeans
 import statsmodels.api as sm
 
 #X 1. Page Configuration
@@ -321,33 +320,23 @@ st.write("Using the mathematical `statsmodels.api` package to analyze how signif
 if st.button("Run Multiple Regression Analysis"):
     with st.spinner("Running OLS mathematical regression..."):
         
-        # 1. Clean data just for this calculation
         regression_df = filtered_df[['Popularity', 'Danceability', 'Energy']].dropna()
         
-        # 2. Define the Dependent Variable (Y) - The final outcome we want to predict
         Y = regression_df['Popularity']
-        
-        # 3. Define the Independent Variables (X) - The data features driving the outcome
         X = regression_df[['Danceability', 'Energy']]
-        
-        # 4. Add a mathematical constant (intercept) naturally required for the linear model
         X = sm.add_constant(X)
         
-        # 5. Initialize and natively fit the Ordinary Least Squares (OLS) regression model
         model = sm.OLS(Y, X).fit()
         
-        # 6. Print the beautiful terminal-style math summary directly onto the web dashboard!
         st.write("**Comprehensive Statsmodels Regression Summary:**")
         st.text(model.summary().as_text())
         
-        # 7. Add a quick interpretive graphic showing Actual vs Predicted
         st.write("**Actual vs Predicted Popularity Scatter:**")
         predictions = model.predict(X)
         
         fig_reg, ax_reg = matplotlib.pyplot.subplots(figsize=(10, 6))
         ax_reg.scatter(Y, predictions, color='magenta', alpha=0.6, edgecolor='black')
         
-        # Add a "perfect prediction" 45-degree slope line
         min_val = min(Y.min(), predictions.min())
         max_val = max(Y.max(), predictions.max())
         ax_reg.plot([min_val, max_val], [min_val, max_val], color='red', linestyle='--', linewidth=2)
@@ -367,7 +356,10 @@ st.write("Encoding track lengths into categorical 'Formats' and visualizing popu
 
 if st.button("Run Format Analysis"):
     with st.spinner("Processing encoding and sorting by Year..."):
-        adv_df = merged_df.dropna(subset=['Duration', 'Popularity', 'Year']).sort_values('Year')
+        # Select only the single longest track from each of the 40 bands
+        adv_df = merged_df.sort_values(['Artist', 'Duration'], ascending=[True, False]).groupby('Artist').head(1)
+        adv_df = adv_df.dropna(subset=['Duration', 'Popularity', 'Year']).sort_values('Year')
+
         adv_df['Duration_Mins'] = adv_df['Duration'] / 60000
         bins = [0, 3.5, 6, np.inf]
         labels = ['Radio Edit', 'Album Cut', 'Extended Mix']
@@ -386,6 +378,6 @@ if st.button("Run Format Analysis"):
         ax_final.set_title("Historical Popularity Trends by Encoded Track Format")
         ax_final.legend()
         st.pyplot(fig_final)
-        st.info("💡 **Final Context:** This encoding exercise proves how track format and length influences consumer demand across history.")
+        st.info("**Final Context:** This encoding exercise proves how track format and length influences consumer demand across history.")
 
 
