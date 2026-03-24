@@ -97,29 +97,50 @@ st.write("**March 2026 Estimated Artist Revenue Comparison**")
 if st.button("Show Revenue Chart"):
     with st.spinner("Generating revenue chart..."):
         fig_rev, ax_rev = matplotlib.pyplot.subplots(figsize=(8, 5))
-        # Data
         bands = ['Red Hot Chili Peppers', 'Sex Pistols']
         
-        # Calculated from March 2026 actual stream volumes multiplied by an estimated $0.005 per stream
         rhcp_revenue = 45844488 * 0.005
         pistols_revenue = 1258867 * 0.005
         revenues = [rhcp_revenue, pistols_revenue]
         
         bar_colors = ['red', 'black']
         
-        # Plot
         ax_rev.bar(bands, revenues, color=bar_colors, edgecolor='black')
         
-        # Formatting
         ax_rev.set_ylabel("Revenue ($)", fontweight='bold')
         ax_rev.set_title("March 2026 Estimated Spotify Revenue", fontsize=14, fontweight='bold')
         ax_rev.grid(axis='y', linestyle='--', alpha=0.7)
         
-        # Add value labels on top of the bars with 2-decimal currency formatting
         for i, v in enumerate(revenues):
             ax_rev.text(i, v + 5000, f"${v:,.2f}", ha='center', fontweight='bold', fontsize=11)
             
         st.pyplot(fig_rev)
+
+st.write("---")
+st.write("**Average Popularity Ranking of the 40 Selected Bands**")
+
+if st.button("Show Popularity Chart for 40 Bands"):
+    with st.spinner("Generating popularity comparison chart..."):
+        # Calculate average popularity per artist in the filtered dataset
+        band_popularity = filtered_df.groupby('Artist')['Popularity'].mean().sort_values(ascending=False)
+        
+        fig_pop, ax_pop = matplotlib.pyplot.subplots(figsize=(14, 6))
+        
+        # Create a beautiful gradient of 40 colors
+        import matplotlib.cm as cm
+        bar_colors = cm.viridis(np.linspace(0, 1, len(band_popularity)))
+        
+        # Plot
+        ax_pop.bar(band_popularity.index, band_popularity.values, color=bar_colors, edgecolor='black')
+        
+        # Formatting
+        ax_pop.set_xticks(range(len(band_popularity)))
+        ax_pop.set_xticklabels(band_popularity.index, rotation=90, fontsize=9)
+        ax_pop.set_ylabel("Average Spotify Popularity", fontweight='bold')
+        ax_pop.set_title("Average Spotify Popularity of the 40 Filtered Artists", fontsize=16, fontweight='bold')
+        ax_pop.grid(axis='y', linestyle='--', alpha=0.6)
+        
+        st.pyplot(fig_pop)
 
 st.divider()
 
