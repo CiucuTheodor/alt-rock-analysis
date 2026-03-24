@@ -367,25 +367,23 @@ if st.button("Run Format Analysis"):
         longest_10 = merged_df.sort_values('Duration', ascending=False).head(10).copy()
         longest_10['Format'] = 'Long Form (>6m)'
         
-        # 3. The 10 tracks closest to the median duration (The Middle)
         sorted_all = merged_df.sort_values('Duration')
         mid_idx = len(sorted_all) // 2
         middle_10 = sorted_all.iloc[mid_idx-5 : mid_idx+5].copy()
         middle_10['Format'] = 'Standard Form (Mid)'
 
-        # Combine these into a perfect 30-track balanced dataframe
         adv_df = pd.concat([shortest_10, longest_10, middle_10])
         adv_df = adv_df.dropna(subset=['Year']).sort_values('Year')
         adv_df['Duration_Mins'] = adv_df['Duration'] / 60000
 
-        # One-Hot Encoding: Transforming these perfectly balanced categories into binary indicators
         format_encoded = pd.get_dummies(adv_df['Format'], prefix='Type', dtype=int)
         adv_df = pd.concat([adv_df, format_encoded], axis=1)
 
         st.write("### The One-Hot Encoded Dataset (Sorted by Year)")
         st.write("We have exactly **10 songs** for each encoded product type (Short, Standard, Long):")
         type_cols = [c for c in adv_df.columns if 'Type_' in c]
-        st.dataframe(adv_df[['Year', 'Artist', 'Track', 'Duration_Mins'] + type_cols + ['Popularity']].head(15))
+        st.dataframe(adv_df[['Year', 'Artist', 'Track', 'Duration_Mins'] + type_cols + ['Popularity']])
+
 
         yearly_pop = adv_df.groupby(['Year', 'Format'], observed=True)['Popularity'].mean().unstack()
         fig_final, ax_final = matplotlib.pyplot.subplots(figsize=(12, 6))
@@ -400,7 +398,6 @@ if st.button("Run Format Analysis"):
         ax_final.legend()
         st.pyplot(fig_final)
 
-        # 4. Final Economic Interpretation: Attention Efficiency (ROI)
         st.write("---")
         st.subheader("Economic Interpretation: Efficiency of Attention")
         st.write("We calculate the **Return on Investment (ROI)** as Popularity captured per minute of music across our balanced samples:")
