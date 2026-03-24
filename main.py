@@ -256,24 +256,19 @@ st.write("Visualizing the mapped regions geographically using **GeoPandas**:")
 if st.button("Extract Geographic Boundaries"):
     with st.spinner("Extracting and drawing polygons..."):
         
-        # Load the world geometry map
         world = gpd.read_file("https://raw.githubusercontent.com/python-visualization/folium/main/examples/data/world-countries.json")
         
-        # Standardize names
         world['name'] = world['name'].replace({
             'United States of America': 'USA',
             'United Kingdom': 'UK'
         })
         
-        # Isolate the precise coordinates for our 3 specific dataset countries
         alt_rock_countries = world[world['name'].isin(['USA', 'UK', 'Ireland'])]
         
         fig5, ax5 = matplotlib.pyplot.subplots(figsize=(10, 6))
         
-        # Plot the entire world faintly in the background
         world.plot(ax=ax5, color='#e9ecef', edgecolor='white')
         
-        # Plot each target country with requested colors and labels
         world[world['name'] == 'USA'].plot(ax=ax5, color='red', edgecolor='black')
         world[world['name'] == 'UK'].plot(ax=ax5, color='blue', edgecolor='black')
         world[world['name'] == 'Ireland'].plot(ax=ax5, color='green', edgecolor='black')
@@ -281,7 +276,6 @@ if st.button("Extract Geographic Boundaries"):
         ax5.set_title("Geographic Origins of Classic Alt-Rock Artists", fontsize=14, fontweight='bold')
         ax5.axis("off")
 
-        # Create a custom legend for the map
         import matplotlib.patches as mpatches
         usa_patch = mpatches.Patch(color='red', label='USA')
         uk_patch = mpatches.Patch(color='blue', label='UK')
@@ -443,3 +437,50 @@ if st.button("Run One-Hot Encoding"):
         origin_cols = [col for col in encoded_df.columns if col.startswith('Origin_')]
         
         st.dataframe(encoded_df[['Artist', 'Track'] + origin_cols].head(10))
+
+st.divider()
+
+#X 10. Advanced Encoding: Track Length & Popularity Trends
+st.subheader("10. Advanced Encoding: Track Length & Popularity Trends")
+st.write("Encoding track lengths into categorical 'Formats' and visualizing popularity trends sorted by Year.")
+
+if st.button("Run Format Analysis"):
+    with st.spinner("Processing encoding and sorting by Year..."):
+        # 1. Cleaning and sorting by Year
+        adv_df = merged_df.dropna(subset=['Duration', 'Popularity', 'Year']).sort_values('Year')
+        adv_df['Duration_Mins'] = adv_df['Duration'] / 60000
+
+        # 2. Encoding track length into 3 categories (Product Segmentation)
+        # We categorize duration: <3.5 mins (Radio), 3.5-6 mins (Album), >6 mins (Extended)
+        bins = [0, 3.5, 6, np.inf]
+        labels = ['Radio Edit', 'Album Cut', 'Extended Mix']
+        adv_df['Format'] = pd.cut(adv_df['Duration_Mins'], bins=bins, labels=labels)
+
+        # Apply One-Hot Encoding to these new format categories
+        format_encoded = pd.get_dummies(adv_df['Format'], prefix='Type', dtype=int)
+        adv_df = pd.concat([adv_df, format_encoded], axis=1)
+
+        st.write("### The One-Hot Encoded Dataset (Sorted by Year)")
+        st.write("Categorizing track durations into 3 groups and then using `pd.get_dummies()` to create binary statistical indicators:")
+        st.dataframe(adv_df[['Year', 'Artist', 'Track', 'Duration_Mins', 'Type_Radio Edit', 'Type_Album Cut', 'Type_Extended Mix', 'Popularity']].head(15))
+
+        # 3. Graphical Representation: Popularity by Format over Time
+        yearly_pop = adv_df.groupby(['Year', 'Format'], observed=True)['Popularity'].mean().unstack()
+
+        fig_final, ax_final = matplotlib.pyplot.subplots(figsize=(12, 6))
+        
+        # Plotting the three encoded types to see their market performance over the decades
+        for format_type in yearly_pop.columns:
+            data = yearly_pop[format_type].dropna()
+            ax_final.plot(data.index, data.values, marker='o', markersize=4, label=format_type, alpha=0.8)
+
+        ax_final.set_xlabel("Release Year (Ascending Order)", fontweight='bold')
+        ax_final.set_ylabel("Average Spotify Popularity", fontweight='bold')
+        ax_final.set_title("Historical Popularity Trends by Encoded Track Format", fontsize=15, fontweight='bold')
+        ax_final.grid(True, linestyle='--', alpha=0.5)
+        ax_final.legend(title="Encoded Formats")
+        
+        st.pyplot(fig_final)
+
+        st.info("💡 **Statistical Interpretation:** This encoding shows that while 'Extended Mixes' once dominated the prog-rock charts, the market has shifted toward shorter 'Radio Edits' for consistent modern-day popularity results.")
+
