@@ -8,6 +8,7 @@ import geopandas as gpd
 from sklearn.cluster import KMeans
 import statsmodels.api as sm
 
+#X 1. Page Configuration
 st.set_page_config(page_title="Classic Alt Rock Analysis", layout="wide")
 
 st.title("Classic Alt Rock Dataset analysis")
@@ -29,6 +30,7 @@ st.dataframe(df.head(800))
 st.subheader("Dataset Dimensions")
 st.write(f"This dataset has {df.shape[0]} rows and {df.shape[1]} columns.")
 
+#X 2. Extracted Artists
 st.subheader("2. Extracted Artists")
 
 sort_option = st.radio("Sort Artists By:", ["Alphabetical (A-Z)", "Average Popularity (High to Low)"]
@@ -57,7 +59,6 @@ st.divider()
 st.subheader("3. Filtered Dataset")
 st.write("A newly created dataset strictly isolating the targeted bands:")
 
-# The user specifically requested to shrink a NEW dataset down to only these targeted bands:
 selected_bands = [
     "3 Doors Down", "Alice In Chains", "Blur", "Counting Crows", "Dead Kennedys", 
     "Deftones", "Depeche Mode", "Disturbed", "Elvis Costello", "Everclear", 
@@ -69,24 +70,19 @@ selected_bands = [
     "The Clash", "The Cure", "The Smashing Pumpkins", "The Smiths", "TOOL", "Weezer"
 ]
 
-# Create a brand new dataframe (leaving the initial 'df' intact)
 filtered_df = df[df['Artist'].isin(selected_bands)].reset_index(drop=True)
 
 st.dataframe(filtered_df)
 st.write(f"The beautifully filtered dataset now has exactly {filtered_df.shape[0]} rows.")
 
-st.write("---")
 st.write(f"**The {len(selected_bands)} Officially Filtered Artists:**")
 
-# Let the user choose how to sort this secondary list as well using a unique key
 sort_option_filtered = st.radio("Sort Filtered Artists By:", ["Alphabetical (A-Z)", "Average Popularity (High to Low)"], horizontal=True, key="sort_filtered")
 
 if sort_option_filtered == "Average Popularity (High to Low)":
-    # Calculate average popularity from the freshly filtered_df
     artist_pop_f = filtered_df.groupby('Artist')['Popularity'].mean().sort_values(ascending=False)
     display_bands = artist_pop_f.index.tolist()
 else:
-    # Default alphabetical
     display_bands = sorted(selected_bands, key=str.lower)
 
 num_cols_f = 5
@@ -94,6 +90,32 @@ cols_f = st.columns(num_cols_f)
 
 for i, artist in enumerate(display_bands):
     cols_f[i % num_cols_f].write(f"- {artist}")
+
+st.write("---")
+st.write("**March 2026 Estimated Artist Revenue Comparison**")
+
+if st.button("Show Revenue Chart"):
+    with st.spinner("Generating revenue chart..."):
+        fig_rev, ax_rev = matplotlib.pyplot.subplots(figsize=(8, 5))
+        
+        # Data
+        bands = ['Red Hot Chili Peppers', 'Sex Pistols']
+        revenues = [230000, 6250]
+        bar_colors = ['red', 'black']
+        
+        # Plot
+        ax_rev.bar(bands, revenues, color=bar_colors, edgecolor='black')
+        
+        # Formatting
+        ax_rev.set_ylabel("Revenue ($)", fontweight='bold')
+        ax_rev.set_title("March 2026 Revenue: RHCP vs Sex Pistols", fontsize=14, fontweight='bold')
+        ax_rev.grid(axis='y', linestyle='--', alpha=0.7)
+        
+        # Add value labels on top of the bars so they are perfectly readable
+        for i, v in enumerate(revenues):
+            ax_rev.text(i, v + 3000, f"${v:,}", ha='center', fontweight='bold', fontsize=11)
+            
+        st.pyplot(fig_rev)
 
 st.divider()
 
