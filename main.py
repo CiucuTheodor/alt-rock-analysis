@@ -6,6 +6,7 @@ import os
 import matplotlib.pyplot
 import geopandas as gpd
 import statsmodels.api as sm
+from sklearn.preprocessing import StandardScaler
 
 #X 1. Page Configuration
 st.set_page_config(page_title="Classic Alt Rock Analysis", layout="wide")
@@ -356,14 +357,10 @@ st.write("Encoding track lengths into categorical 'Formats' and visualizing popu
 
 if st.button("Run Format Analysis"):
     with st.spinner("Processing encoding and sorting by Year..."):
-        # Select exactly 30 tracks, ensuring an equal 10/10/10 split
-        # We assign the category labels BEFORE concatenating to guarantee equal sample sizes
         
-        # 1. The 10 shortest tracks in the collection
         shortest_10 = merged_df.sort_values('Duration').head(10).copy()
         shortest_10['Format'] = 'Short Form (<3.5m)'
         
-        # 2. The 10 longest tracks in the collection
         longest_10 = merged_df.sort_values('Duration', ascending=False).head(10).copy()
         longest_10['Format'] = 'Long Form (>6m)'
         
@@ -414,3 +411,43 @@ if st.button("Run Format Analysis"):
             st.metric("Long Form ROI", f"{roi_stats['Long Form (>6m)']:.2f}", "Pop/Minute")
 
         st.info("**Statistical Takeaway:** Shorter 'Radio Edit' products almost always capture a higher concentration of popularity per minute. This proves the **Attention Scarcity Theory**: in a digital market, the most efficient financial strategy is producing shorter content that maximizes consumer interest in the smallest possible 'time-window'.")
+
+st.divider()
+
+#X 9. Data Normalization: Scaling Methods
+st.subheader("9. Data Normalization: Scaling Methods")
+st.write("Using `sklearn.preprocessing.StandardScaler` to translate musical features with different units into a single **Standardized Market Index**.")
+
+if st.button("Calculate Unified Scaling Model"):
+    with st.spinner("Standardizing disparate musical assets..."):
+        # 1. Select disparate features (Units: 0-100, 50-200, 0-1)
+        scale_data = filtered_df[['Popularity', 'Tempo', 'Energy']].dropna().copy()
+        
+        # 2. Applying the Scaling Method (Checklist Item #5)
+        # We mathematically transform 'raw units' into 'Standard Deviations' from the mean
+        scaler = StandardScaler()
+        scaled_array = scaler.fit_transform(scale_data)
+        
+        # 3. Re-wrap in a dataframe for a professional comparison across the 40 bands
+        scaled_df = pd.DataFrame(scaled_array, columns=['Scaled_Popularity', 'Scaled_Tempo', 'Scaled_Energy'])
+        
+        st.write("Notice how every musical feature now has a **Mean of 0** and a **Standard Deviation of 1**. They can now be mathematically compared without scale-bias:")
+        st.dataframe(scaled_df.head(10))
+        
+        # Comparison Graphs: Visualizing the mathematical shift
+        fig_scale, (ax_pre, ax_post) = matplotlib.pyplot.subplots(1, 2, figsize=(14, 6))
+        
+        # Pre-Scaling: Highly disparate axes (Market Chaos)
+        scale_data.boxplot(ax=ax_pre)
+        ax_pre.set_title("1. Pre-Scaling: Disparate Units (Market Chaos)")
+        ax_pre.set_ylabel("Original Raw Units (0 to 180+)")
+        
+        # Post-Scaling: Unified axes (Market Index)
+        scaled_df.boxplot(ax=ax_post)
+        ax_post.set_title("2. Post-Scaling: Standardized Units (Unified Matrix)")
+        ax_post.set_ylabel("Standard Deviations (σ)")
+        
+        st.pyplot(fig_scale)
+        
+        st.success("💡 **Economic Interpretation:** In an efficient market, 'Value' cannot be measured in raw units. For example, earning **1 more point of Popularity** is extremely difficult (Scarcity), while adding **1 BPM to Tempo** is easy. By scaling everything to the same **Z-score scale**, we create a 'Unified Asset Index' where different features can finally be added together with equal mathematical weight.")
+
