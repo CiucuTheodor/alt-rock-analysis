@@ -251,48 +251,7 @@ if st.button("Show Country Pie Chart"):
             ax4.axis('equal') 
             st.pyplot(fig4)
 
-st.divider()
-
-#X 6. Matplotlib Graphical Representation
-st.subheader("6. Graphical Representation (`matplotlib`)")
-st.write("Using the full `matplotlib` package to create a bar chart of the top 10 most popular tracks:")
-
-if st.button("Show Matplotlib Chart"):
-    with st.spinner("Rendering bar chart..."):
-        # Sort by popularity to isolate the top 10 tracks
-        top_10 = filtered_df.sort_values(by="Popularity", ascending=False).head(10)
-
-        # Create a beautiful Matplotlib figure and axis
-        fig2, ax2 = matplotlib.pyplot.subplots(figsize=(12, 6))
-
-        import matplotlib.colors as mcolors
-
-        # Generate a distinct array list of native named colors
-        all_colors_top = list(mcolors.cnames.keys())
-
-        # Plot a multi-colored bar chart using the named color list
-        ax2.bar(top_10["Track"], top_10["Popularity"], color=all_colors_top[:len(top_10)], edgecolor="black")
-
-        # Rotate the track names on the X-axis so they don't overlap
-        ax2.set_xticks(range(len(top_10)))
-        ax2.set_xticklabels(top_10["Track"], rotation=45, ha='right')
-
-        # Add official academic labels and titles
-        ax2.set_xlabel("Track Name", fontsize=12, fontweight='bold')
-        ax2.set_ylabel("Spotify Popularity Score", fontsize=12, fontweight='bold')
-        ax2.set_title("Top 10 Most Popular Alt-Rock Tracks", fontsize=16)
-
-        # Adding horizontal grid lines to match typical visual standards
-        ax2.grid(axis='y', linestyle='--', alpha=0.7)
-
-        # Send the static Matplotlib figure to Streamlit for display
-        st.pyplot(fig2)
-
-st.divider()
-
-#X 7. Geographic Polygon Mapping (GeoPandas)
-st.subheader("7. Geographic Polygons (GeoPandas)")
-st.write("A simpler, computational illustration using GeoPandas purely to isolate the mathematical boundary vectors (polygons) of the USA, UK, and Ireland:")
+st.write("Visualizing the mapped regions geographically using **GeoPandas**:")
 
 if st.button("Extract Geographic Boundaries"):
     with st.spinner("Extracting and drawing polygons..."):
@@ -324,8 +283,38 @@ if st.button("Extract Geographic Boundaries"):
 
 st.divider()
 
-#X 8. KMeans Clustering (Machine Learning)
-st.subheader("8. Machine Learning: KMeans Clustering")
+#X 6. Matplotlib Graphical Representation
+st.subheader("6. Graphical Representation (`matplotlib`)")
+st.write("Using the full `matplotlib` package to create a bar chart of the top 10 most popular tracks:")
+
+if st.button("Show Matplotlib Chart"):
+    with st.spinner("Rendering bar chart..."):
+        top_10 = filtered_df.sort_values(by="Popularity", ascending=False).head(10)
+
+        fig2, ax2 = matplotlib.pyplot.subplots(figsize=(12, 6))
+
+        import matplotlib.colors as mcolors
+
+        all_colors_top = list(mcolors.cnames.keys())
+        ax2.bar(top_10["Track"], top_10["Popularity"], color=all_colors_top[:len(top_10)], edgecolor="black")
+
+        ax2.set_xticks(range(len(top_10)))
+        ax2.set_xticklabels(top_10["Track"], rotation=45, ha='right')
+
+        ax2.set_xlabel("Track Name", fontsize=12, fontweight='bold')
+        ax2.set_ylabel("Spotify Popularity Score", fontsize=12, fontweight='bold')
+        ax2.set_title("Top 10 Most Popular Alt-Rock Tracks", fontsize=16)
+
+        ax2.grid(axis='y', linestyle='--', alpha=0.7)
+
+        st.pyplot(fig2)
+
+st.divider()
+
+
+
+#X 7. Machine Learning: KMeans Clustering
+st.subheader("7. Machine Learning: KMeans Clustering")
 st.write("Using `sklearn.cluster.KMeans` to group our Classic Alt-Rock tracks into 3 distinct mathematical clusters based on their `Danceability` and `Energy` levels:")
 
 if st.button("Generate KMeans Clustering Diagrams"):
@@ -376,8 +365,8 @@ if st.button("Generate KMeans Clustering Diagrams"):
 
 st.divider()
 
-#X 9. Statsmodels (Multiple Regression)
-st.subheader("9. Statistical Modeling: Multiple Regression (`statsmodels`)")
+#X 8. Statistical Modeling: Multiple Regression (`statsmodels`)
+st.subheader("8. Statistical Modeling: Multiple Regression (`statsmodels`)")
 st.write("Using the mathematical `statsmodels.api` package to analyze how significantly `Danceability` and `Energy` statistically predict a track's ultimate `Popularity` on Spotify:")
 
 if st.button("Run Multiple Regression Analysis"):
@@ -423,8 +412,8 @@ if st.button("Run Multiple Regression Analysis"):
 
 st.divider()
 
-#X 10. Data Preprocessing: Encoding Methods
-st.subheader("10. Data Preprocessing: Encoding Methods")
+#X 9. Data Preprocessing: Encoding Methods
+st.subheader("9. Data Preprocessing: Encoding Methods")
 st.write("Using Pandas `pd.get_dummies()` to uniquely perform **One-Hot Encoding** on the categorical `Country` column, mathematically translating descriptive geographic strings into Machine Learning binary integers (`0` and `1`):")
 
 if st.button("Run One-Hot Encoding"):
