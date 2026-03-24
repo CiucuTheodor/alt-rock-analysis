@@ -121,19 +121,15 @@ st.write("**Average Popularity Ranking of the 40 Selected Bands**")
 
 if st.button("Show Popularity Chart for 40 Bands"):
     with st.spinner("Generating popularity comparison chart..."):
-        # Calculate average popularity per artist in the filtered dataset
         band_popularity = filtered_df.groupby('Artist')['Popularity'].mean().sort_values(ascending=False)
         
         fig_pop, ax_pop = matplotlib.pyplot.subplots(figsize=(14, 6))
         
-        # Create a beautiful gradient of 40 colors
         import matplotlib.cm as cm
         bar_colors = cm.viridis(np.linspace(0, 1, len(band_popularity)))
         
-        # Plot
         ax_pop.bar(band_popularity.index, band_popularity.values, color=bar_colors, edgecolor='black')
         
-        # Formatting
         ax_pop.set_xticks(range(len(band_popularity)))
         ax_pop.set_xticklabels(band_popularity.index, rotation=90, fontsize=9)
         ax_pop.set_ylabel("Average Spotify Popularity", fontweight='bold')
@@ -183,6 +179,51 @@ if st.button("Show Aggregated Data Graph"):
         
         # Render the specific Matplotlib chart
         st.pyplot(fig3)
+
+st.write("---")
+st.write("**Correlation Analysis: Danceability, Tempo, and Popularity**")
+
+if st.button("Show Correlation Matrix"):
+    with st.spinner("Calculating Pearson correlations..."):
+        # Select the 3 specific numeric columns
+        corr_data = filtered_df[['Danceability', 'Tempo', 'Popularity']].dropna()
+        
+        # Calculate the standard pearson correlation matrix
+        corr_matrix = corr_data.corr()
+        
+        st.write("Raw Mathematical Matrix (Color Coded):")
+        # Streamlit natively renders pandas gradients beautifully
+        st.dataframe(corr_matrix.style.background_gradient(cmap='coolwarm', vmin=-1, vmax=1).format("{:.3f}"))
+        
+        # Create a highly professional Matplotlib Heatmap representation
+        fig_corr, ax_corr = matplotlib.pyplot.subplots(figsize=(6, 5))
+        
+        # Plotting the heatmap squares
+        cax = ax_corr.matshow(corr_matrix, cmap='coolwarm', vmin=-1, vmax=1)
+        fig_corr.colorbar(cax, shrink=0.8)
+        
+        # Formatting the axes labels
+        labels = ['Danceability', 'Tempo', 'Popularity']
+        ax_corr.set_xticks(range(len(labels)))
+        ax_corr.set_yticks(range(len(labels)))
+        ax_corr.set_xticklabels(labels, fontsize=10, fontweight='bold')
+        ax_corr.set_yticklabels(labels, fontsize=10, fontweight='bold')
+        ax_corr.xaxis.set_ticks_position('bottom')
+        
+        # Annotate the heatmap squares with the exact numeric values
+        for i in range(len(labels)):
+            for j in range(len(labels)):
+                val = corr_matrix.iloc[i, j]
+                # If dark colormap, use white text, else black
+                text_color = "white" if abs(val) > 0.5 else "black"
+                ax_corr.text(j, i, f"{val:.2f}",
+                             ha="center", va="center", color=text_color, fontweight='bold', fontsize=12)
+                
+        ax_corr.set_title("Pearson Feature Correlation Heatmap", pad=20, fontsize=14, fontweight='bold')
+        
+        st.pyplot(fig_corr)
+        
+        st.info("💡 **Statistical Insight:** A correlation value of exactly `1.00` is perfect (e.g., Tempo vs Tempo). If Popularity strongly scales with Danceability, the number will be firmly positive. If it is close to `0.00`, there is zero linear mathematical relationship between them in this dataset.")
 
 st.divider()
 
