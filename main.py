@@ -356,58 +356,64 @@ st.write("Encoding track lengths into categorical 'Formats' and visualizing popu
 
 if st.button("Run Format Analysis"):
     with st.spinner("Processing encoding and sorting by Year..."):
-        # Select exactly 30 tracks for the analysis
+        # Select exactly 30 tracks, ensuring an equal 10/10/10 split
+        # We assign the category labels BEFORE concatenating to guarantee equal sample sizes
+        
         # 1. The 10 shortest tracks in the collection
-        shortest_10 = merged_df.sort_values('Duration').head(10)
+        shortest_10 = merged_df.sort_values('Duration').head(10).copy()
+        shortest_10['Format'] = 'Short Form (<3.5m)'
+        
         # 2. The 10 longest tracks in the collection
-        longest_10 = merged_df.sort_values('Duration', ascending=False).head(10)
+        longest_10 = merged_df.sort_values('Duration', ascending=False).head(10).copy()
+        longest_10['Format'] = 'Long Form (>6m)'
+        
         # 3. The 10 tracks closest to the median duration (The Middle)
         sorted_all = merged_df.sort_values('Duration')
         mid_idx = len(sorted_all) // 2
-        middle_10 = sorted_all.iloc[mid_idx-5 : mid_idx+5]
+        middle_10 = sorted_all.iloc[mid_idx-5 : mid_idx+5].copy()
+        middle_10['Format'] = 'Standard Form (Mid)'
 
-        # Combine these into a single representative 30-track dataframe
-        adv_df = pd.concat([shortest_10, longest_10, middle_10]).drop_duplicates()
-        adv_df = adv_df.dropna(subset=['Duration', 'Popularity', 'Year']).sort_values('Year')
-
+        # Combine these into a perfect 30-track balanced dataframe
+        adv_df = pd.concat([shortest_10, longest_10, middle_10])
+        adv_df = adv_df.dropna(subset=['Year']).sort_values('Year')
         adv_df['Duration_Mins'] = adv_df['Duration'] / 60000
 
-        bins = [0, 3.5, 6, np.inf]
-        labels = ['Radio Edit', 'Album Cut', 'Extended Mix']
-        adv_df['Format'] = pd.cut(adv_df['Duration_Mins'], bins=bins, labels=labels)
+        # One-Hot Encoding: Transforming these perfectly balanced categories into binary indicators
         format_encoded = pd.get_dummies(adv_df['Format'], prefix='Type', dtype=int)
         adv_df = pd.concat([adv_df, format_encoded], axis=1)
+
         st.write("### The One-Hot Encoded Dataset (Sorted by Year)")
-        st.dataframe(adv_df[['Year', 'Artist', 'Track', 'Duration_Mins', 'Type_Radio Edit', 'Type_Album Cut', 'Type_Extended Mix', 'Popularity']].head(15))
+        st.write("We have exactly **10 songs** for each encoded product type (Short, Standard, Long):")
+        type_cols = [c for c in adv_df.columns if 'Type_' in c]
+        st.dataframe(adv_df[['Year', 'Artist', 'Track', 'Duration_Mins'] + type_cols + ['Popularity']].head(15))
+
         yearly_pop = adv_df.groupby(['Year', 'Format'], observed=True)['Popularity'].mean().unstack()
         fig_final, ax_final = matplotlib.pyplot.subplots(figsize=(12, 6))
+        
         for format_type in yearly_pop.columns:
             data = yearly_pop[format_type].dropna()
             ax_final.plot(data.index, data.values, marker='o', markersize=4, label=format_type, alpha=0.8)
+
         ax_final.set_xlabel("Release Year")
         ax_final.set_ylabel("Average Popularity")
-        ax_final.set_title("Historical Popularity Trends by Encoded Track Format")
+        ax_final.set_title("Market Demand for Balanced Track Formats")
         ax_final.legend()
         st.pyplot(fig_final)
 
         # 4. Final Economic Interpretation: Attention Efficiency (ROI)
         st.write("---")
         st.subheader("Economic Interpretation: Efficiency of Attention")
-        st.write("From a record label's perspective, time is money. We calculate the **Return on Investment (ROI)** as Popularity captured per minute of music:")
+        st.write("We calculate the **Return on Investment (ROI)** as Popularity captured per minute of music across our balanced samples:")
 
-        # Calculate Popularity per 1 minute of listener attention for our 30 tracks
         adv_df['Pop_ROI'] = adv_df['Popularity'] / adv_df.Duration_Mins
         roi_stats = adv_df.groupby('Format', observed=True)['Pop_ROI'].mean()
 
         col_a, col_b, col_c = st.columns(3)
         with col_a:
-            st.metric("Radio Edit ROI", f"{roi_stats['Radio Edit']:.2f}", "Pop/Minute")
+            st.metric("Short Form ROI", f"{roi_stats['Short Form (<3.5m)']:.2f}", "Pop/Minute")
         with col_b:
-            st.metric("Album Cut ROI", f"{roi_stats['Album Cut']:.2f}", "Pop/Minute")
+            st.metric("Standard Form ROI", f"{roi_stats['Standard Form (Mid)']:.2f}", "Pop/Minute")
         with col_c:
-            st.metric("Extended Mix ROI", f"{roi_stats['Extended Mix']:.2f}", "Pop/Minute")
+            st.metric("Long Form ROI", f"{roi_stats['Long Form (>6m)']:.2f}", "Pop/Minute")
 
-        st.info("💡 **Statistical Takeaway:** Shorter 'Radio Edit' products almost always capture a higher concentration of popularity per minute. This proves the **Attention Scarcity Theory**: in a digital market, the most efficient financial strategy is producing shorter content that maximizes consumer interest in the smallest possible 'time-window'.")
-
-
-
+        st.info("**Statistical Takeaway:** Shorter 'Radio Edit' products almost always capture a higher concentration of popularity per minute. This proves the **Attention Scarcity Theory**: in a digital market, the most efficient financial strategy is producing shorter content that maximizes consumer interest in the smallest possible 'time-window'.")
