@@ -1,8 +1,0 @@
-streamlit
-pandas
-numpy
-geopandas
-matplotlib
-scikit-learn
-kagglehub
-statsmodels

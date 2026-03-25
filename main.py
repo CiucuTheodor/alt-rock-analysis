@@ -392,36 +392,29 @@ if st.button("Run Format Analysis"):
 
 st.divider()
 
-#X 9. Data Normalization: Scaling Methods
 st.subheader("9. Data Normalization: Scaling Methods")
 st.write("Using `sklearn.preprocessing.StandardScaler` to translate musical features with different units into a single **Standardized Market Index**.")
 
 if st.button("Calculate Unified Scaling Model"):
     with st.spinner("Standardizing disparate musical assets..."):
-        # 1. Select disparate features (Units: 0-100, 50-200, 0-1)
         scale_data = filtered_df[['Popularity', 'Tempo', 'Energy']].dropna().copy()
         
-        # 2. Applying the Scaling Method (Checklist Item #5)
-        # We mathematically transform 'raw units' into 'Standard Deviations' from the mean
         scaler = StandardScaler()
         scaled_array = scaler.fit_transform(scale_data)
         
-        # 3. Re-wrap in a dataframe for a professional comparison across the 40 bands
         scaled_df = pd.DataFrame(scaled_array, columns=['Scaled_Popularity', 'Scaled_Tempo', 'Scaled_Energy'])
         
         st.dataframe(scaled_df.head(10))
         
-        # Comparison Graphs: Visualizing the mathematical shift
         fig_scale, (ax_pre, ax_post) = matplotlib.pyplot.subplots(1, 2, figsize=(14, 6))
         
-        # Pre-Scaling: Highly disparate axes (Market Chaos)
         scale_data.boxplot(ax=ax_pre)
         ax_pre.set_title("1. Pre-Scaling: Disparate Units (Market Chaos)")
         ax_pre.set_ylabel("Original Raw Units (0 to 180+)")
         
-        # Post-Scaling: Unified axes (Market Index)
         scaled_df.boxplot(ax=ax_post)
         ax_post.set_title("2. Post-Scaling: Standardized Units (Unified Matrix)")
         ax_post.set_ylabel("Standard Deviations (σ)")
         
         st.pyplot(fig_scale)
+
