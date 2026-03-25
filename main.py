@@ -73,9 +73,6 @@ selected_bands = [
 filtered_df = df[df['Artist'].isin(selected_bands)].reset_index(drop=True)
 
 st.dataframe(filtered_df)
-st.write(f"The beautifully filtered dataset now has exactly {filtered_df.shape[0]} rows.")
-
-st.write(f"**The {len(selected_bands)} Officially Filtered Artists:**")
 
 sort_option_filtered = st.radio("Sort Filtered Artists By:", ["Alphabetical (A-Z)", "Average Popularity (High to Low)"], horizontal=True, key="sort_filtered")
 
@@ -207,8 +204,6 @@ if st.button("Show Correlation Matrix"):
         ax_corr.set_title("Pearson Feature Correlation Heatmap", pad=20, fontsize=14, fontweight='bold')
         
         st.pyplot(fig_corr)
-        
-        st.info("💡 **Statistical Insight:** A correlation value of exactly `1.00` is perfect (e.g., Tempo vs Tempo). If Popularity strongly scales with Danceability, the number will be firmly positive. If it is close to `0.00`, there is zero linear mathematical relationship between them in this dataset.")
 
 st.divider()
 
@@ -395,23 +390,6 @@ if st.button("Run Format Analysis"):
         ax_final.legend()
         st.pyplot(fig_final)
 
-        st.write("---")
-        st.subheader("Economic Interpretation: Efficiency of Attention")
-        st.write("We calculate the **Return on Investment (ROI)** as Popularity captured per minute of music across our balanced samples:")
-
-        adv_df['Pop_ROI'] = adv_df['Popularity'] / adv_df.Duration_Mins
-        roi_stats = adv_df.groupby('Format', observed=True)['Pop_ROI'].mean()
-
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            st.metric("Short Form ROI", f"{roi_stats['Short Form (<3.5m)']:.2f}", "Pop/Minute")
-        with col_b:
-            st.metric("Standard Form ROI", f"{roi_stats['Standard Form (Mid)']:.2f}", "Pop/Minute")
-        with col_c:
-            st.metric("Long Form ROI", f"{roi_stats['Long Form (>6m)']:.2f}", "Pop/Minute")
-
-        st.info("**Statistical Takeaway:** Shorter 'Radio Edit' products almost always capture a higher concentration of popularity per minute. This proves the **Attention Scarcity Theory**: in a digital market, the most efficient financial strategy is producing shorter content that maximizes consumer interest in the smallest possible 'time-window'.")
-
 st.divider()
 
 #X 9. Data Normalization: Scaling Methods
@@ -431,7 +409,6 @@ if st.button("Calculate Unified Scaling Model"):
         # 3. Re-wrap in a dataframe for a professional comparison across the 40 bands
         scaled_df = pd.DataFrame(scaled_array, columns=['Scaled_Popularity', 'Scaled_Tempo', 'Scaled_Energy'])
         
-        st.write("Notice how every musical feature now has a **Mean of 0** and a **Standard Deviation of 1**. They can now be mathematically compared without scale-bias:")
         st.dataframe(scaled_df.head(10))
         
         # Comparison Graphs: Visualizing the mathematical shift
@@ -448,5 +425,3 @@ if st.button("Calculate Unified Scaling Model"):
         ax_post.set_ylabel("Standard Deviations (σ)")
         
         st.pyplot(fig_scale)
-        
-        st.success("💡 **Economic Interpretation:** In an efficient market, 'Value' cannot be measured in raw units. For example, earning **1 more point of Popularity** is extremely difficult (Scarcity), while adding **1 BPM to Tempo** is easy. By scaling everything to the same **Z-score scale**, we create a 'Unified Asset Index' where different features can finally be added together with equal mathematical weight.")
