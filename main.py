@@ -392,6 +392,7 @@ if st.button("Run Format Analysis"):
 
 st.divider()
 
+#X 9. Data Normalization: Scaling Methods
 st.subheader("9. Data Normalization: Scaling Methods")
 st.write("Using `sklearn.preprocessing.StandardScaler` to translate musical features with different units into a single **Standardized Market Index**.")
 
@@ -417,4 +418,3 @@ if st.button("Calculate Unified Scaling Model"):
         ax_post.set_ylabel("Standard Deviations (σ)")
         
         st.pyplot(fig_scale)
-
