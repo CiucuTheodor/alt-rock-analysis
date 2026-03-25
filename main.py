@@ -8,11 +8,38 @@ import geopandas as gpd
 import statsmodels.api as sm
 from sklearn.preprocessing import StandardScaler
 
-#X 1. Page Configuration
-st.set_page_config(page_title="Classic Alt Rock Analysis", layout="wide")
+# University Headers
+st.markdown("""
+<div style='text-align: center'>
+    <h4>BUCHAREST UNIVERSITY OF ECONOMIC STUDIES</h4>
+    <h5>CYBERNETICS, STATISTICS AND ECONOMIC INFORMATICS FACULTY</h5>
+    <p><b>- Software Packages Project -</b></p>
+    <h2>Classic Alt. Rock tracks analysis</h2>
+</div>
+""", unsafe_allow_html=True)
 
-st.title("Classic Alt Rock Dataset analysis")
-st.write("Streamlit interface for dataset analysis.")
+st.markdown("""
+**Coordinator:**  
+Belciu Anda
+
+**Carried out by:**  
+Ciucu-Barcan Theodor-George  
+Craciun Stefan
+
+**Group:** 1104
+""")
+
+st.divider()
+
+st.write("""
+For this project we decided to use a dataset focused on alternative rock in order to showcase the different functionalities and practices using python and various libraries such as streamlit, geopandas, numpy, etc.
+
+In order to import the dataset we opted to use the kagglehub library instead of manually downloading it from their website. Our datasets makes use of various characteristics collected from Spotify in order to give a deeper understanding analysis of the tracks and how they are different from each other without having to listen to every single one of them.
+
+We also decided to host the application using the integrated free hosting feature by linking a github account on the official Streamlit app.
+""")
+
+st.title("Classic Alt Rock Dataset Analysis")
 
 @st.cache_data
 def load_data():
@@ -25,25 +52,33 @@ with st.spinner("Loading dataset..."):
     df = load_data()
 
 st.subheader("1. Raw Dataset Preview")
+st.write("""
+The first challenge for this project was initializing Streamlit and importing the dataset. The raw dataset has a total of 781 rows and 18 columns.
+We used the kagglehub package, Streamlit and the python environment to initialize our app.
+
+**Calculation methods/algorithms:** 
+- `@st.cache_data` to optimize loading times
+- `kagglehub.dataset_download()` to fetch the data
+- `pd.read_csv()` to read the CSV file into a structured dataframe
+
+Importing the dataset enables us to start our economic analysis on the Alt Rock dataset.
+""")
 st.dataframe(df.head(800))
 
 st.subheader("Dataset Dimensions")
 st.write(f"This dataset has {df.shape[0]} rows and {df.shape[1]} columns.")
 
 #X 2. Extracted Artists
-st.subheader("2. Extracted Artists")
+st.write("""
+Extracting all unique artists from the dataset and displaying them cleanly as strings, sorted either alphabetically (A to Z) or dynamically by their average platform popularity.
+We used streamlit methods (`st.radio`, `st.columns`, `st.divider`) and pandas for grouping.
 
-sort_option = st.radio("Sort Artists By:", ["Alphabetical (A-Z)", "Average Popularity (High to Low)"]
-, horizontal=True)
+**Calculation methods/algorithms:** 
+- `.unique().tolist()` to isolate unique artists
+- `df.groupby('Artist')['Popularity'].mean().sort_values(ascending=False)` to sort by popularity
 
-if sort_option == "Average Popularity (High to Low)":
-    artist_pop = df.groupby('Artist')['Popularity'].mean().sort_values(ascending=False)
-    artists_list = artist_pop.index.tolist()
-    artists_list = [str(artist) for artist in artists_list]
-else:
-    artists_list = df['Artist'].unique().tolist()
-    artists_list = [str(artist) for artist in artists_list]
-    artists_list.sort(key=str.lower)
+Like most streaming platforms, Spotify pays artists by the number of streams in a month; the higher the average popularity is, the higher their revenue is. However, this revenue goes to the right holders (usually record labels and distributors) and the actual money the artists take home depends entirely on the specific contract they signed. But supposing that every artist in this data set would have the same exact contract this would be their hierarchy:
+""")
 
 st.write(f"There are a total of {len(artists_list)} unique artists present in the initial database:")
 
@@ -57,6 +92,14 @@ st.divider()
 
 #X 3. Filtered Dataset
 st.subheader("3. Filtered Dataset")
+st.write("""
+The initial dataset offers us a great total of 95 artists; we decided to cut it down to a total of 40 artists to combat overplotting and have a better visual readability.
+We used streamlit methods to display buttons, pandas to group and matplotlib for the bar charts.
+
+**Calculation methods/algorithms:** 
+- The highlight is the pandas `isin.selected_bands` filtering algorithm to estimate the revenue.
+""")
+
 st.write("A newly created dataset strictly isolating the targeted bands:")
 
 selected_bands = [
@@ -138,11 +181,22 @@ if st.button("Show Popularity Chart for 40 Bands"):
         
         st.pyplot(fig_pop)
 
+st.write("""
+The chart showcases the popularity hierarchy of the 40 selected bands and gives us a deeper understanding of how these artists perform in terms of listener engagement and streaming visibility on the platform. At the top of the ranking, bands like **Red Hot Chili Peppers** and **Linkin Park** stand out with the highest average popularity scores, close to 80. The middle section of the chart includes artists like **Weezer**, **Counting Crows**, and **Paramore** with a slightly lower popularity. Lastly, toward the lower end we have bands such as **The Cure**, **Joy Division** and **Sex Pistols**; these bands have a comparatively lower popularity score.
+
+The graph also reveals high economic inequality on Spotify and streaming platforms in general. The average payout on Spotify is roughly $0.003 to $0.005 per stream; this means the estimated revenue generated by popular bands is significantly greater than niche bands that struggle to stay relevant in the eyes of the label. For example, Red Hot Chili Peppers has a revenue as high as $230,000 (estimated for March 2026) while the revenue generated by Sex Pistols is only as high as $6,250, making it almost 37 times as high.
+""")
+
 st.divider()
 
 #X 4. Statistical Processing & Aggregation
 st.subheader("4. Statistical Processing & Aggregation")
-st.write("Using Pandas `.groupby()` to calculate the **sum** and **mean** of `Danceability` for each artist's tracks:")
+st.write("""
+Calculating aggregated metrics (sum, mean, count) for audio features like "Danceability" and "Tempo" per artist, and testing if these features mathematically correlate with a song's popularity.
+We used pandas to calculate the sum and mean for danceability, mean for Tempo and count for tracks, matplot for bar chart and correlation matrix. We also used `filtered_df[...].dropna()` to deal with any possible missing data.
+
+Using Pandas `.groupby()` to calculate the **sum** and **mean** of `Danceability` for each artist's tracks:
+""")
 
 
 df_agg = filtered_df.groupby(['Artist']).agg({'Danceability': [sum, "mean"], 
@@ -172,6 +226,10 @@ if st.button("Show Aggregated Data Graph"):
         ax3.grid(axis='y', linestyle='--', alpha=0.7)
         
         st.pyplot(fig3)
+
+st.write("""
+This chart illustrates how much tempo (measured in BPM) can vary from a band to another band even if they are from the same music genre. We can point out higher-tempo artists such as **Green Day** and **Foo Fighters** which are usually aligned with punk influences. For mid-range bands such as **Red Hot Chili Peppers** and **Weezer**, their tempo reflects versatility. Lastly, the lower end is filled with artists such as **The Cure** and **Joy Division**; they tend to have a more melancholic musical style compared to the rest of the presented bands.
+""")
 
 st.write("---")
 st.write("**Correlation Analysis: Danceability, Tempo, and Popularity**")
@@ -208,11 +266,20 @@ if st.button("Show Correlation Matrix"):
         
         st.pyplot(fig_corr)
         
-        st.info("💡 **Statistical Insight:** A correlation value of exactly `1.00` is perfect (e.g., Tempo vs Tempo). If Popularity strongly scales with Danceability, the number will be firmly positive. If it is close to `0.00`, there is zero linear mathematical relationship between them in this dataset.")
+        st.write("""
+The heatmap displays the Pearson correlation coefficient between three key audio features presented in the data set: **danceability**, **tempo**, and **popularity**:
+
+- **Danceability vs. Tempo**: There is a weak negative correlation between how fast a song is (Tempo) and how danceable it is. As Tempo increases, Danceability tends to linearly decrease.
+- **Danceability vs. Popularity**: There is no linear correlation. Danceability possesses zero predictive power regarding popularity and both variables are statistically linearly independent.
+- **Tempo vs. Popularity**: There is an extremely weak, negligible negative linear correlation; the effect size is utterly negligible.
+
+**In conclusion**, none of the features strongly influence each other. This means that danceability and tempo are not key to make a rock song successful, but other factors like marketing and artist reputation might play a bigger role.
+""")
+        st.info(" **Statistical Insight:** A correlation value of exactly `1.00` is perfect (e.g., Tempo vs Tempo). If Popularity strongly scales with Danceability, the number will be firmly positive. If it is close to `0.00`, there is zero linear mathematical relationship between them in this dataset.")
 
 st.divider()
 
-#X 5. Merge / Join Datasets
+# 5. Merge / Join Datasets
 st.subheader("5. Processing Datasets with Merge / Join")
 st.write("We create a secondary standalone dataset containing the 'Country of Origin' for each artist, and use Pandas `pd.merge()` to mathematically join them:")
 
@@ -236,6 +303,11 @@ merged_df = pd.merge(filtered_df, country_mapping, on='Artist', how='left')
 
 st.dataframe(merged_df)
 
+st.write("""
+**Mapping the 40 filtered artists to their country of origin and visualizing how tracks are distributed globally.**
+We create a secondary standalone second dataset containing the 'Country of Origin' for each artist, and then used Pandas `pd.merge()` to mathematically join them. We also used GeoPandas for the function `gpd.read_file()` to fetch geographic polygon data.
+""")
+
 st.write("Visualizing the Distribution of Tracks by Country of Origin using a Pie Chart:")
 
 if st.button("Show Country Pie Chart"):
@@ -250,6 +322,11 @@ if st.button("Show Country Pie Chart"):
             ax4.set_title('Track Distribution by Country of Origin', fontsize=16, fontweight='bold')
             ax4.axis('equal') 
             st.pyplot(fig4)
+            st.write("""
+The pie chart is divided into 3 parts: USA, UK, and Ireland. However, they are not evenly divided, with most of the bands coming from the USA, a third from the UK, and less than 1% from Ireland. 
+
+The USA is without a doubt the economic powerhouse of the alt rock industry, especially considering that most of the bands that have a high popularity are recording tracks in the country. The UK is the second largest making up for almost the rest of the pie chart, while Ireland makes up a merely 0.06%.
+""")
 
 st.write("Visualizing the mapped regions geographically using **GeoPandas**:")
 
@@ -288,7 +365,12 @@ st.divider()
 
 #X 6. Matplotlib Graphical Representation
 st.subheader("6. Graphical Representation (`matplotlib`)")
-st.write("Using the full `matplotlib` package to create a bar chart of the top 10 most popular tracks:")
+st.write("""
+**Identifying and cleanly representing the top 10 most popular individual alt-rock tracks across the dataset.**
+We used matplotlib to create the customized bar chart of the top 10 tracks and the sorting algorithm `.sort_values(by="Popularity", ascending=False)`, after which we isolated the top results using `.head(10)`.
+
+Using the full `matplotlib` package to create a bar chart of the top 10 most popular tracks:
+""")
 
 if st.button("Show Matplotlib Chart"):
     with st.spinner("Rendering bar chart..."):
@@ -311,12 +393,20 @@ if st.button("Show Matplotlib Chart"):
         ax2.grid(axis='y', linestyle='--', alpha=0.7)
 
         st.pyplot(fig2)
+        st.write("""
+The bar chart showcases the 10 most popular tracks available in the dataset. It is estimated that these songs alone have generated roughly $74 Million in Spotify royalties. Out of these tracks, a grand total of 9 are coming from the United States (The songs 'Chop Suey!' and 'Toxicity' can be considered Armenian as the band members are of Armenian descent, however we decided to count them as American since the band formed in Los Angeles). The only outlier in this is the British song 'Should I stay or Should I go' from The Clash. This yet again emphasizes the influence of the United States music industry and the large earning gaps between countries and continents around the world.
+""")
 
 st.divider()
 
 #X 7. Statistical Modeling: Multiple Regression (`statsmodels`)
 st.subheader("7. Statistical Modeling: Multiple Regression (`statsmodels`)")
-st.write("Using the mathematical `statsmodels.api` package to analyze how significantly `Danceability` and `Energy` statistically predict a track's ultimate `Popularity` on Spotify:")
+st.write("""
+**Using mathematical modelling to analyse how significant danceability and energy can predict a track's ultimate popularity of a song.**
+For this exercise we focused on using the `statsmodels` package to see if these two can predict popularity, we also used streamlit and matplotlib.
+
+Using the mathematical `statsmodels.api` package to analyze how significantly `Danceability` and `Energy` statistically predict a track's ultimate `Popularity` on Spotify:
+""")
 
 if st.button("Run Multiple Regression Analysis"):
     with st.spinner("Running OLS mathematical regression..."):
@@ -348,12 +438,27 @@ if st.button("Run Multiple Regression Analysis"):
         ax_reg.grid(linestyle='--', alpha=0.5)
         
         st.pyplot(fig_reg)
+        st.write("""
+From the regression results we have:
+- The **R-squared value of 0.015** meaning that danceability and energy combined explain only 1.5% of the variance. This means we have an extremely weak model and 98.5% of what makes an alt-rock track popular is driven by variables that are not used in this model.
+- A **P-value for the F-statistic of 0.076** meaning that the overall model is not statistically significant.
+- Out of danceability and energy, the only statistically significant one is **Energy**. A 1-unit maximum increase in energy is associated with an 11.37-point increase in popularity.
+
+This scatter plot shows us how well our statsmodels regression equation performed. If our model would have been 100% accurate, every single predicted popularity score would have matched the Spotify popularity score. But since our variables are so weakly correlated to the outcome, every single prediction falls between 55 and 65 on the Y-axis.
+
+**In conclusion**, it is better to analyze other factors to determine popularity, especially commercial factors since the industry is heavily driven by marketing budgets.
+""")
 
 st.divider()
 
 #X 8. Advanced Encoding: Track Length & Popularity Trends
 st.subheader("8. Advanced Encoding: Track Length & Popularity Trends")
-st.write("Encoding track lengths into categorical 'Formats' and visualizing popularity trends sorted by Year.")
+st.write("""
+**Encoding continuous track lengths into categorical 'Formats' (Short, Standard, Long) to visualize trends over time and calculate economic efficiency.**
+We used duration, year, and popularity for this analysis and we made use of streamlit, extreme minimum and maximum values, encoding methods (`pd.get_dummies()`), pandas for calculating the average popularity per year and average return of income per format, and lastly matplotlib for graphical representation.
+
+Encoding track lengths into categorical 'Formats' and visualizing popularity trends sorted by Year.
+""")
 
 if st.button("Run Format Analysis"):
     with st.spinner("Processing encoding and sorting by Year..."):
@@ -395,6 +500,13 @@ if st.button("Run Format Analysis"):
         ax_final.legend()
         st.pyplot(fig_final)
 
+        st.write("""
+- This line chart tracks the historical performance of three specific track formats—**Short (<3.5m)**, **Standard (Mid)**, and **Long (>6m)**—across four decades of alt-rock releases, using their modern-day Spotify Popularity scores.
+- The **Long Form format (>6m)** is historically the most volatile and generally the lowest-performing category.
+- The **Short Form format (<3.5m)** has the highest form ROI, maintaining a stable and high popularity over the years.
+- The **Standard Form (Mid-length)** is highly erratic but it also has the absolute highest peaks on the chart.
+""")
+
         st.write("---")
         st.subheader("Economic Interpretation: Efficiency of Attention")
         st.write("We calculate the **Return on Investment (ROI)** as Popularity captured per minute of music across our balanced samples:")
@@ -411,43 +523,51 @@ if st.button("Run Format Analysis"):
             st.metric("Long Form ROI", f"{roi_stats['Long Form (>6m)']:.2f}", "Pop/Minute")
 
         st.info("**Statistical Takeaway:** Shorter 'Radio Edit' products almost always capture a higher concentration of popularity per minute. This proves the **Attention Scarcity Theory**: in a digital market, the most efficient financial strategy is producing shorter content that maximizes consumer interest in the smallest possible 'time-window'.")
+        
+        st.write("""
+The Return on Investment results highlights that shorter tracks are doing way better compared to standard and long. The economic efficiency only decays as the track gets longer and this proves that in the digital era of consumerism attention span is vital and usually shorter forms of media are more likely to be engaged with by the consumers.
+""")
 
 st.divider()
 
 #X 9. Data Normalization: Scaling Methods
 st.subheader("9. Data Normalization: Scaling Methods")
-st.write("Using `sklearn.preprocessing.StandardScaler` to translate musical features with different units into a single **Standardized Market Index**.")
+st.write("""
+**Using `sklearn.preprocessing.StandardScaler` to translate raw musical data measured with different units into a single Standardized Market Index to measure them accordingly.**
+To do this we utilized z-score standardization to scale tempo, energy and popularity in a standardized format, allowing us to eliminate the scale-bias. We made use of applying the `sklearn.preprocessing.StandardScaler()` algorithm and the mathematical formula $z = (x - \\mu) / \\sigma$ (where $x$ = raw data, $\\mu$ = mean of the feature, $\\sigma$ = standard deviation).
+
+Using `sklearn.preprocessing.StandardScaler` to translate musical features with different units into a single **Standardized Market Index**.
+""")
 
 if st.button("Calculate Unified Scaling Model"):
     with st.spinner("Standardizing disparate musical assets..."):
-        # 1. Select disparate features (Units: 0-100, 50-200, 0-1)
         scale_data = filtered_df[['Popularity', 'Tempo', 'Energy']].dropna().copy()
         
-        # 2. Applying the Scaling Method (Checklist Item #5)
-        # We mathematically transform 'raw units' into 'Standard Deviations' from the mean
         scaler = StandardScaler()
         scaled_array = scaler.fit_transform(scale_data)
         
-        # 3. Re-wrap in a dataframe for a professional comparison across the 40 bands
         scaled_df = pd.DataFrame(scaled_array, columns=['Scaled_Popularity', 'Scaled_Tempo', 'Scaled_Energy'])
         
         st.write("Notice how every musical feature now has a **Mean of 0** and a **Standard Deviation of 1**. They can now be mathematically compared without scale-bias:")
         st.dataframe(scaled_df.head(10))
         
-        # Comparison Graphs: Visualizing the mathematical shift
         fig_scale, (ax_pre, ax_post) = matplotlib.pyplot.subplots(1, 2, figsize=(14, 6))
         
-        # Pre-Scaling: Highly disparate axes (Market Chaos)
         scale_data.boxplot(ax=ax_pre)
         ax_pre.set_title("1. Pre-Scaling: Disparate Units (Market Chaos)")
         ax_pre.set_ylabel("Original Raw Units (0 to 180+)")
         
-        # Post-Scaling: Unified axes (Market Index)
         scaled_df.boxplot(ax=ax_post)
         ax_post.set_title("2. Post-Scaling: Standardized Units (Unified Matrix)")
         ax_post.set_ylabel("Standard Deviations (σ)")
         
         st.pyplot(fig_scale)
         
-        st.success("💡 **Economic Interpretation:** In an efficient market, 'Value' cannot be measured in raw units. For example, earning **1 more point of Popularity** is extremely difficult (Scarcity), while adding **1 BPM to Tempo** is easy. By scaling everything to the same **Z-score scale**, we create a 'Unified Asset Index' where different features can finally be added together with equal mathematical weight.")
+        st.write("""
+- In the first boxplot, **tempo** appears to be far more valuable than energy because they are measured in different ways and operate on different numerical scales. Tempo is measured in BPM (beats per minute) and the range is between 60 to 100, while energy is a ratio between 0.0 and 1.0.
+- In the second boxplot, we can visualize how **z-score standardization** eliminates the bias created by larger numbers. Now energy is no longer flattened at the bottom of the chart and we can see that it actually contains a dynamic distribution of data.
 
+This shows how in an efficient market value cannot be measured in raw units and in order to have a better understanding of a track's true market potential, these metrics must be placed on an equal mathematical playing field.
+""")
+        
+        st.success("**Economic Interpretation:** In an efficient market, 'Value' cannot be measured in raw units. For example, earning **1 more point of Popularity** is extremely difficult (Scarcity), while adding **1 BPM to Tempo** is easy. By scaling everything to the same **Z-score scale**, we create a 'Unified Asset Index' where different features can finally be added together with equal mathematical weight.")
