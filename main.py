@@ -4,9 +4,14 @@ import pandas as pd
 import numpy as np
 import os
 import matplotlib.pyplot
-import geopandas as gpd
 import statsmodels.api as sm
 from sklearn.preprocessing import StandardScaler
+
+try:
+    import geopandas as gpd
+    HAS_GEOPANDAS = True
+except ImportError:
+    HAS_GEOPANDAS = False
 
 #X 1. Page Configuration
 st.set_page_config(page_title="Classic Alt Rock Analysis", layout="wide")
@@ -117,7 +122,7 @@ st.write("---")
 st.write("**Average Popularity Ranking of the 40 Selected Bands**")
 
 if st.button("Show Popularity Chart for 40 Bands"):
-    with st.spinner("Generating popularity comparison chart..."):
+    with st.spinner("Generating popularity comparison chart"):
         band_popularity = filtered_df.groupby('Artist')['Popularity'].mean().sort_values(ascending=False)
         
         fig_pop, ax_pop = matplotlib.pyplot.subplots(figsize=(14, 6))
@@ -249,35 +254,40 @@ if st.button("Show Country Pie Chart"):
 st.write("Visualizing the mapped regions geographically using **GeoPandas**:")
 
 if st.button("Extract Geographic Boundaries"):
-    with st.spinner("Extracting and drawing polygons..."):
-        
-        world = gpd.read_file("https://raw.githubusercontent.com/python-visualization/folium/main/examples/data/world-countries.json")
-        
-        world['name'] = world['name'].replace({
-            'United States of America': 'USA',
-            'United Kingdom': 'UK'
-        })
-        
-        alt_rock_countries = world[world['name'].isin(['USA', 'UK', 'Ireland'])]
-        
-        fig5, ax5 = matplotlib.pyplot.subplots(figsize=(10, 6))
-        
-        world.plot(ax=ax5, color='#e9ecef', edgecolor='white')
-        
-        world[world['name'] == 'USA'].plot(ax=ax5, color='red', edgecolor='black')
-        world[world['name'] == 'UK'].plot(ax=ax5, color='blue', edgecolor='black')
-        world[world['name'] == 'Ireland'].plot(ax=ax5, color='green', edgecolor='black')
-        
-        ax5.set_title("Geographic Origins of Classic Alt-Rock Artists", fontsize=14, fontweight='bold')
-        ax5.axis("off")
+    if not HAS_GEOPANDAS:
+        st.error("GeoPandas is not installed or failed to initialize due to missing system requirements (GDAL). The rest of the app will still function!")
+    else:
+        with st.spinner("Extracting and drawing polygons..."):
+            try:
+                world = gpd.read_file("https://raw.githubusercontent.com/python-visualization/folium/main/examples/data/world-countries.json")
+                
+                world['name'] = world['name'].replace({
+                    'United States of America': 'USA',
+                    'United Kingdom': 'UK'
+                })
+                
+                alt_rock_countries = world[world['name'].isin(['USA', 'UK', 'Ireland'])]
+                
+                fig5, ax5 = matplotlib.pyplot.subplots(figsize=(10, 6))
+                
+                world.plot(ax=ax5, color='#e9ecef', edgecolor='white')
+                
+                world[world['name'] == 'USA'].plot(ax=ax5, color='red', edgecolor='black')
+                world[world['name'] == 'UK'].plot(ax=ax5, color='blue', edgecolor='black')
+                world[world['name'] == 'Ireland'].plot(ax=ax5, color='green', edgecolor='black')
+                
+                ax5.set_title("Geographic Origins of Classic Alt-Rock Artists", fontsize=14, fontweight='bold')
+                ax5.axis("off")
 
-        import matplotlib.patches as mpatches
-        usa_patch = mpatches.Patch(color='red', label='USA')
-        uk_patch = mpatches.Patch(color='blue', label='UK')
-        ireland_patch = mpatches.Patch(color='green', label='Ireland')
-        ax5.legend(handles=[usa_patch, uk_patch, ireland_patch], loc='lower left', title="Artist Origins")
-        
-        st.pyplot(fig5)
+                import matplotlib.patches as mpatches
+                usa_patch = mpatches.Patch(color='red', label='USA')
+                uk_patch = mpatches.Patch(color='blue', label='UK')
+                ireland_patch = mpatches.Patch(color='green', label='Ireland')
+                ax5.legend(handles=[usa_patch, uk_patch, ireland_patch], loc='lower left', title="Artist Origins")
+                
+                st.pyplot(fig5)
+            except Exception as e:
+                st.error(f"An error occurred while rendering the map: {e}")
 
 st.divider()
 

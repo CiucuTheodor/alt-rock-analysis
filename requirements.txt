@@ -6,6 +6,4 @@ matplotlib
 geopandas
 statsmodels
 scikit-learn
-fiona
-pyproj
-pyogrio
+requests
